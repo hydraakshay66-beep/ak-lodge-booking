@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123c35">
+<meta name="description" content="AK LODGE room booking, Guwahati">
+<title>AK LODGE | Room Booking</title>
+<style>
+:root{--green:#123c35;--mint:#eaf4ef;--gold:#d8b36a;--ink:#18231f;--muted:#64716b;--line:#dce5df;--white:#fff;--red:#9f2727}
+*{box-sizing:border-box}body{margin:0;background:#f5f7f5;color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}header{background:var(--green);color:#fff;padding:22px 16px}header .wrap,main,.foot{max-width:980px;margin:auto}h1{margin:0;font-size:28px;letter-spacing:.5px}header p{margin:5px 0 0;color:#e0ebe5}.contact{margin-top:12px;font-size:14px}main{padding:16px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px;box-shadow:0 3px 12px #173a2b0a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.room{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.room img{width:100%;height:165px;object-fit:cover;background:#e9eeea}.room .inside{padding:13px}.price{font-size:20px;font-weight:750;color:var(--green)}label{display:block;font-weight:650;font-size:14px;margin:12px 0 5px}input,select,textarea{width:100%;border:1px solid #bac8bf;border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--ink)}button,.btn{border:0;border-radius:10px;padding:12px 15px;background:var(--green);color:#fff;font:700 15px system-ui;cursor:pointer}button.secondary{background:#e9f0ec;color:var(--green)}button.danger{background:#9f2727}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.muted{color:var(--muted);font-size:14px}.hidden{display:none!important}.notice{padding:12px;border-radius:10px;background:var(--mint);margin:10px 0;white-space:pre-wrap}.error{background:#fff0f0;color:var(--red)}.pill{display:inline-block;background:var(--mint);color:var(--green);border-radius:30px;padding:4px 9px;font-size:12px;font-weight:700}.topnav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.topnav button{background:#fff;color:var(--green)}.topnav button.active{background:var(--gold);color:#1d251e}.room h3{margin:0 0 5px}.foot{text-align:center;padding:10px 16px 30px;color:var(--muted);font-size:13px}.check{display:flex;gap:9px;align-items:flex-start;margin:12px 0}.check input{width:auto;margin-top:4px}.booking{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}.booking h4{margin:0 0 5px}.admin-only{border-left:4px solid var(--gold)}small{color:var(--muted)}@media(min-width:650px){main{padding:24px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header><div class="wrap">
+<h1>AK LODGE</h1><p>Comfortable stay in Guwahati</p>
+<div class="contact">📍 H32, Bormotoria, Guwahati, Assam 781036<br>📞 Booking: <a style="color:white" href="tel:7005093869">70050 93869</a></div>
+<div class="topnav">
+<button id="navHome" class="active" onclick="showPage('home')">Rooms</button>
+<button id="navBookings" onclick="showPage('mybookings')">My bookings</button>
+<button id="navAdmin" class="hidden" onclick="showPage('admin')">Admin panel</button>
+<button id="navAuth" onclick="showPage('auth')">Login / Sign up</button>
+<button id="navLogout" class="hidden" onclick="logout()">Logout</button>
+</div>
+</div></header>
+<main>
+<div id="globalMsg" class="notice hidden"></div>
+
+<section id="page-home">
+<div class="card">
+<h2 style="margin-top:0">Find a room</h2>
+<p class="muted">Select your dates to see rooms that can be requested. Booking is confirmed only after lodge staff approves it. Payment is made at the lodge.</p>
+<div class="grid">
+<div><label for="searchIn">Check-in date</label><input id="searchIn" type="date"></div>
+<div><label for="searchOut">Check-out date</label><input id="searchOut" type="date"></div>
+<div><label for="searchGuests">Guests</label><select id="searchGuests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+</div>
+<div style="margin-top:12px"><button onclick="loadRooms()">Check availability</button></div>
+</div>
+<div id="roomsGrid" class="grid"><div class="card">Loading rooms…</div></div>
+</section>
+
+<section id="page-auth" class="hidden">
+<div class="card">
+<h2 style="margin-top:0">Customer / Staff login</h2>
+<p class="muted">New customers can create an account. Owner and manager accounts must first be promoted by the database owner; signing up does not grant staff access.</p>
+<div class="row"><button id="loginTab" onclick="setAuthMode('login')">Login</button><button class="secondary" id="signupTab" onclick="setAuthMode('signup')">Create account</button></div>
+<form id="authForm">
+<div id="nameWrap" class="hidden"><label for="fullName">Full name</label><input id="fullName" autocomplete="name"></div>
+<label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" required>
+<label for="authPassword">Password</label><input id="authPassword" type="password" minlength="8" autocomplete="current-password" required>
+<div id="phoneWrap" class="hidden"><label for="authPhone">Phone number</label><input id="authPhone" type="tel" autocomplete="tel"></div>
+<button style="margin-top:14px" type="submit" id="authSubmit">Login</button>
+</form>
+<div class="muted" style="margin-top:12px">If email confirmation is enabled in Supabase, check your inbox before logging in.</div>
+</div>
+</section>
+
+<section id="page-mybookings" class="hidden">
+<div class="card"><h2 style="margin-top:0">My bookings</h2><div id="myBookingsList">Login to view your bookings.</div></div>
+</section>
+
+<section id="page-admin" class="hidden">
+<div class="card admin-only">
+<h2 style="margin-top:0">Staff dashboard</h2><p id="staffWelcome" class="muted"></p>
+<div class="grid">
+<div class="card"><div class="muted">Total active rooms</div><div id="statRooms" style="font-size:28px;font-weight:800">—</div></div>
+<div class="card"><div class="muted">Occupied today</div><div id="statOccupied" style="font-size:28px;font-weight:800">—</div></div>
+<div class="card"><div class="muted">Pending requests</div><div id="statPending" style="font-size:28px;font-weight:800">—</div></div>
+</div>
+</div>
+<div class="card admin-only">
+<h3>Add a room</h3>
+<form id="roomForm">
+<div class="grid">
+<div><label>Room number / code</label><input id="roomNumber" required placeholder="e.g. 101"></div>
+<div><label>Room type</label><input id="roomType" required value="Standard"></div>
+<div><label>Guests capacity</label><input id="roomCapacity" type="number" min="1" max="20" value="2" required></div>
+<div><label>Price per night (₹)</label><input id="roomPrice" type="number" min="0" step="0.01" required placeholder="e.g. 1000"></div>
+</div>
+<label>Description / facilities</label><textarea id="roomDescription" rows="2" placeholder="Bed type, AC, attached bathroom, etc."></textarea>
+<button style="margin-top:12px" type="submit">Add room</button>
+</form>
+</div>
+<div class="card admin-only">
+<h3>Upload room photo</h3>
+<label>Select room</label><select id="photoRoom"></select>
+<label>Choose image (JPG, PNG or WEBP, max 5 MB)</label><input id="roomPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+<label>Photo description (optional)</label><input id="photoAlt" placeholder="e.g. Double bed room">
+<button style="margin-top:12px" onclick="uploadPhoto()">Upload photo</button>
+<p class="muted">Images are publicly viewable as lodge marketing photos. Never upload IDs, personal documents or private customer images.</p>
+</div>
+<div class="card admin-only"><h3>All booking requests</h3><div id="allBookings">Loading…</div></div>
+<div class="card admin-only"><h3>Room inventory</h3><div id="allRooms">Loading…</div></div>
+</section>
+</main>
+<div class="foot">AK LODGE · Booking requests only · Payment at the lodge</div>
+<script>
+/* SETUP: paste Supabase Project URL and anon/public key below. Never paste service_role key here. */
+const SUPABASE_URL = "https://gcrwyenvqxecyijdfhmj.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "sb_publishable_mJyjf_PN3p1VIqTy34GzYQ_0_lbPnmr";
+let sb = null, currentSession = null, currentProfile = null, authMode = "login";
+const $ = id => document.getElementById(id);
+function showMsg(message, error=false){const el=$("globalMsg");el.textContent=message;el.classList.remove("hidden","error");if(error)el.classList.add("error");window.scrollTo({top:0,behavior:"smooth"});}
+function clearMsg(){$("globalMsg").classList.add("hidden");}
+function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function money(v){return "₹"+Number(v||0).toLocaleString("en-IN",{maximumFractionDigits:2});}
+function dateToday(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function showPage(page){["home","auth","mybookings","admin"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page));["Home","Bookings","Admin","Auth"].forEach(n=>{let b=$("nav"+n);if(b)b.classList.toggle("active",({"Home":"home","Bookings":"mybookings","Admin":"admin","Auth":"auth"}[n])===page)});if(page==="mybookings")loadMyBookings();if(page==="admin")loadAdmin();}
+function setAuthMode(mode){authMode=mode;$("nameWrap").classList.toggle("hidden",mode!=="signup");$("phoneWrap").classList.toggle("hidden",mode!=="signup");$("authSubmit").textContent=mode==="signup"?"Create account":"Login";$("loginTab").className=mode==="login"?"":"secondary";$("signupTab").className=mode==="signup"?"":"secondary";}
+async function init(){
+  $("searchIn").min=dateToday();$("searchOut").min=dateToday();
+  $("searchIn").value=dateToday();let tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);$("searchOut").value=`${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,"0")}-${String(tomorrow.getDate()).padStart(2,"0")}`;
+  if(!window.supabase){showMsg("Supabase library load nahi hui. Internet check karke page refresh karein.",true);return;}
+  if(SUPABASE_URL.startsWith("PASTE_")||SUPABASE_ANON_KEY.startsWith("PASTE_")){showMsg("Setup baaki hai: index.html mein Supabase Project URL aur anon/public key paste karein. README mein exact steps hain.",true);return;}
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data:{session}}=await sb.auth.getSession();currentSession=session;
+  await refreshProfile();sb.auth.onAuthStateChange(async(_event,session)=>{currentSession=session;setTimeout(async()=>{await refreshProfile();updateNav();},0);});
+  updateNav();await loadRooms();
+}
+async function refreshProfile(){currentProfile=null;if(!sb||!currentSession)return;const {data,error}=await sb.from("profiles").select("id,full_name,phone,role").eq("id",currentSession.user.id).maybeSingle();if(!error)currentProfile=data;}
+function updateNav(){const logged=!!currentSession;$("navLogout").classList.toggle("hidden",!logged);$("navAuth").classList.toggle("hidden",logged);$("navBookings").classList.toggle("hidden",!logged);const staff=!!currentProfile&&["owner","manager"].includes(currentProfile.role);$("navAdmin").classList.toggle("hidden",!staff);if(staff)$("staffWelcome").textContent=`Signed in as ${currentProfile.full_name||currentSession.user.email} · role: ${currentProfile.role}`;}
+async function loadRooms(){
+  clearMsg();if(!sb){return;}
+  const ci=$("searchIn").value,co=$("searchOut").value,guests=Number($("searchGuests").value);
+  if(!ci||!co||co<=ci){showMsg("Check-out date, check-in date ke baad honi chahiye.",true);return;}
+  const grid=$("roomsGrid");grid.innerHTML='<div class="card">Checking availability…</div>';
+  const {data:rooms,error}=await sb.from("rooms").select("id,room_number,room_type,description,capacity,price_per_night").eq("is_active",true).order("room_number");
+  if(error){grid.innerHTML='<div class="card">Rooms load nahi hue. Supabase setup aur SQL policies check karein.</div>';return;}
+  if(!rooms||!rooms.length){grid.innerHTML='<div class="card">Abhi rooms add nahi kiye gaye hain. Lodge staff se contact karein: <a href="tel:7005093869">70050 93869</a>.</div>';return;}
+  const avail=await Promise.all(rooms.map(async r=>{const {data,error}=await sb.rpc("check_room_available",{p_room_id:r.id,p_check_in:ci,p_check_out:co,p_guests:guests});return {...r,available:!error&&data===true};}));
+  const {data:imgs}=await sb.from("room_images").select("room_id,image_path,alt_text,sort_order").order("sort_order");
+  const byRoom={};(imgs||[]).forEach(i=>(byRoom[i.room_id]??=[]).push(i));
+  grid.innerHTML=avail.map(r=>{const im=(byRoom[r.id]||[])[0];const {data:urlData}=im?sb.storage.from("ak-lodge-photos").getPublicUrl(im.image_path):{data:{publicUrl:""}};const image=urlData.publicUrl||"https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80";return `<article class="room"><img src="${safe(image)}" alt="${safe(im?.alt_text||r.room_type)}" onerror="this.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80'"><div class="inside"><h3>${safe(r.room_type)} · Room ${safe(r.room_number)}</h3><p class="muted">${safe(r.description||"")}</p><p class="muted">Capacity: ${r.capacity} guest(s)</p><div class="price">${money(r.price_per_night)} <small>/ night</small></div><p><span class="pill">${r.available?"Available for selected dates":"Not available for selected dates"}</span></p><button ${r.available?"":"disabled"} onclick="requestBooking('${r.id}','${safe(r.room_number)}','${Number(r.price_per_night)}')">${r.available?"Request booking":"Unavailable"}</button></div></article>`;}).join("");
+}
+async function requestBooking(roomId,roomNumber,price){
+  if(!currentSession){showMsg("Booking request karne ke liye pehle customer account se login karein.");showPage("auth");return;}
+  const ci=$("searchIn").value,co=$("searchOut").value,guests=Number($("searchGuests").value);
+  const nights=Math.round((new Date(co+"T00:00:00")-new Date(ci+"T00:00:00"))/86400000),total=nights*Number(price);
+  const guestName=prompt("Guest ka full name:");
+  if(!guestName||!guestName.trim())return;
+  const guestPhone=prompt("Guest ka mobile number:");
+  if(!guestPhone||!guestPhone.trim())return;
+  const accepted=confirm(`Booking details:\nRoom ${roomNumber}\n${ci} se ${co} tak (${nights} night)\nGuests: ${guests}\nRate: ${money(price)}/night\nTotal: ${money(total)}\nPayment lodge par hoga.\n\nTerms: booking pehle Pending rahegi; staff confirm karega. Cancellation/ID rules lodge policy ke mutabik honge. Kya aap terms accept karte hain?`);
+  if(!accepted)return;
+  const {data:available,error:availabilityError}=await sb.rpc("check_room_available",{p_room_id:roomId,p_check_in:ci,p_check_out:co,p_guests:guests});
+  if(availabilityError||!available){showMsg("Yeh room abhi available nahi hai. Dates refresh karke doosra room select karein.",true);await loadRooms();return;}
+  const {data,error}=await sb.from("bookings").insert({customer_id:currentSession.user.id,room_id:roomId,guest_name:guestName.trim(),guest_phone:guestPhone.trim(),guests,check_in:ci,check_out:co,nightly_rate:price,status:"pending",terms_accepted:true}).select("booking_code,total_amount").single();
+  if(error){if(error.code==="23P01")showMsg("Sorry, isi room ki dates kisi aur booking se overlap ho gayi. Please doosra room ya dates select karein.",true);else showMsg("Booking submit nahi hui: "+error.message,true);return;}
+  showMsg(`Booking request submit ho gayi!\nBooking ID: ${data.booking_code}\nTotal: ${money(data.total_amount)}\nStatus: Pending — lodge staff confirm karega.\nPayment lodge par hoga.`);await loadRooms();
+}
+$("authForm").addEventListener("submit",async e=>{e.preventDefault();if(!sb)return;clearMsg();const email=$("authEmail").value.trim(),password=$("authPassword").value;
+  let result;
+  if(authMode==="signup"){result=await sb.auth.signUp({email,password,options:{data:{full_name:$("fullName").value.trim(),phone:$("authPhone").value.trim()}}});}
+  else result=await sb.auth.signInWithPassword({email,password});
+  if(result.error){showMsg(result.error.message,true);return;}
+  if(authMode==="signup"&&!result.data.session){showMsg("Account create hua. Agar email confirmation enabled hai, email verify karke phir login karein.");return;}
+  currentSession=result.data.session;await refreshProfile();updateNav();showMsg(authMode==="signup"?"Account ready. Ab room select karke booking request kar sakte hain.":"Login successful.");showPage("home");await loadRooms();
+});
+async function logout(){if(sb)await sb.auth.signOut();currentSession=null;currentProfile=null;updateNav();showMsg("Logout ho gaya.");showPage("home");}
+async function loadMyBookings(){
+  if(!sb||!currentSession){$("myBookingsList").textContent="Login to view your bookings.";return;}
+  const {data,error}=await sb.from("bookings").select("id,booking_code,room_id,guest_name,guests,check_in,check_out,nights,nightly_rate,total_amount,status,created_at,rooms(room_number,room_type)").order("created_at",{ascending:false});
+  if(error){$("myBookingsList").textContent="Bookings load nahi hui: "+error.message;return;}
+  if(!data.length){$("myBookingsList").textContent="Abhi koi booking nahi hai.";return;}
+  $("myBookingsList").innerHTML=data.map(b=>`<div class="booking"><h4>${safe(b.booking_code)} · ${safe(b.rooms?.room_type||"Room")} ${safe(b.rooms?.room_number||"")}</h4><div>${safe(b.check_in)} → ${safe(b.check_out)} (${b.nights} night(s))</div><div>Total: <b>${money(b.total_amount)}</b> · Guests: ${b.guests}</div><p><span class="pill">${safe(b.status.replaceAll("_"," "))}</span></p>${b.status==="pending"?`<button class="danger" onclick="cancelBooking('${b.id}')">Cancel request</button>`:""}</div>`).join("");
+}
+async function cancelBooking(id){if(!confirm("Pending booking cancel karein?"))return;const {error}=await sb.from("bookings").update({status:"cancelled"}).eq("id",id).eq("status","pending");if(error)showMsg("Cancel nahi hua: "+error.message,true);else{showMsg("Booking request cancelled.");await loadMyBookings();await loadRooms();}}
+$("roomForm").addEventListener("submit",async e=>{e.preventDefault();if(!isStaff())return;const room={room_number:$("roomNumber").value.trim(),room_type:$("roomType").value.trim(),capacity:Number($("roomCapacity").value),price_per_night:Number($("roomPrice").value),description:$("roomDescription").value.trim()};const {error}=await sb.from("rooms").insert(room);if(error){showMsg("Room add nahi hua: "+error.message,true);return;}showMsg("Room add ho gaya.");e.target.reset();$("roomType").value="Standard";$("roomCapacity").value="2";await loadAdmin();await loadRooms();});
+function isStaff(){return !!currentProfile&&["owner","manager"].includes(currentProfile.role);}
+async function loadAdmin(){
+ if(!sb||!isStaff()){$("page-admin").classList.add("hidden");showMsg("Admin panel ke liye owner/manager permission zaroori hai.",true);return;}
+ const today=dateToday();
+ const [{data:rooms,error:re},{data:bookings,error:be}] = await Promise.all([
+ sb.from("rooms").select("*").order("room_number"),
+ sb.from("bookings").select("id,booking_code,guest_name,guest_phone,guests,check_in,check_out,total_amount,status,room_id,rooms(room_number,room_type)").order("created_at",{ascending:false}).limit(100)
+ ]);
+ if(re||be){showMsg("Admin data load nahi hua. Database policies check karein.",true);return;}
+ $("statRooms").textContent=(rooms||[]).filter(r=>r.is_active).length;
+ $("statOccupied").textContent=(bookings||[]).filter(b=>b.status==="checked_in"&&b.check_in<=today&&b.check_out>today).length;
+ $("statPending").textContent=(bookings||[]).filter(b=>b.status==="pending").length;
+ $("photoRoom").innerHTML=(rooms||[]).map(r=>`<option value="${r.id}">${safe(r.room_number)} · ${safe(r.room_type)}</option>`).join("");
+ $("allRooms").innerHTML=(rooms||[]).map(r=>`<div class="booking"><b>Room ${safe(r.room_number)} · ${safe(r.room_type)}</b><p>${money(r.price_per_night)}/night · Capacity ${r.capacity} · ${r.is_active?"Active":"Inactive"}</p><div class="row"><button class="secondary" onclick="editPrice('${r.id}',${Number(r.price_per_night)})">Change price</button><button class="secondary" onclick="toggleRoom('${r.id}',${r.is_active})">${r.is_active?"Deactivate":"Activate"}</button></div></div>`).join("")||"No rooms yet.";
+ $("allBookings").innerHTML=(bookings||[]).map(b=>`<div class="booking"><h4>${safe(b.booking_code)} · Room ${safe(b.rooms?.room_number||"")}</h4><div>${safe(b.guest_name)} · ${safe(b.guest_phone)} · ${b.guests} guest(s)</div><div>${safe(b.check_in)} → ${safe(b.check_out)} · ${money(b.total_amount)}</div><p><span class="pill">${safe(b.status.replaceAll("_"," "))}</span></p><div class="row"><select id="status-${b.id}">${["pending","confirmed","rejected","cancelled","checked_in","checked_out","no_show"].map(s=>`<option value="${s}" ${s===b.status?"selected":""}>${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="changeStatus('${b.id}')">Save status</button></div></div>`).join("")||"No booking requests yet.";
+}
+async function editPrice(id,old){const value=prompt("New price per night (₹):",old);if(value===null)return;const price=Number(value);if(!Number.isFinite(price)||price<0){showMsg("Valid price enter karein.",true);return;}const {error}=await sb.from("rooms").update({price_per_night:price}).eq("id",id);if(error)showMsg("Price update nahi hua: "+error.message,true);else{showMsg("Price update ho gaya.");await loadAdmin();await loadRooms();}}
+async function toggleRoom(id,active){if(!confirm(active?"Room deactivate karein? New bookings band ho jayengi.":"Room activate karein?"))return;const {error}=await sb.from("rooms").update({is_active:!active}).eq("id",id);if(error)showMsg("Room status update nahi hua: "+error.message,true);else{showMsg("Room status update ho gaya.");await loadAdmin();await loadRooms();}}
+async function changeStatus(id){const status=$("status-"+id).value;const {error}=await sb.from("bookings").update({status}).eq("id",id);if(error){if(error.code==="23P01")showMsg("Status confirm nahi hua: room ki dates kisi active booking se overlap hain.",true);else showMsg("Status update nahi hua: "+error.message,true);}else showMsg("Booking status update ho gaya.");await loadAdmin();await loadRooms();}
+async function uploadPhoto(){
+ if(!isStaff())return;const roomId=$("photoRoom").value,file=$("roomPhoto").files[0];if(!roomId){showMsg("Pehle room add karein.",true);return;}if(!file){showMsg("Photo select karein.",true);return;}if(file.size>5242880){showMsg("Photo 5 MB se chhoti honi chahiye.",true);return;}if(!["image/jpeg","image/png","image/webp"].includes(file.type)){showMsg("Sirf JPG, PNG ya WEBP upload karein.",true);return;}
+ const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const path=`${roomId}/${crypto.randomUUID()}.${ext}`;
+ const {error:upErr}=await sb.storage.from("ak-lodge-photos").upload(path,file,{contentType:file.type,upsert:false});if(upErr){showMsg("Photo upload nahi hua: "+upErr.message,true);return;}
+ const {error:dbErr}=await sb.from("room_images").insert({room_id:roomId,image_path:path,alt_text:$("photoAlt").value.trim()});
+ if(dbErr){showMsg("Photo storage mein upload hua lekin room list save nahi hui: "+dbErr.message,true);return;}
+ $("roomPhoto").value="";$("photoAlt").value="";showMsg("Photo upload ho gaya.");await loadRooms();
+}
+init();
+</script>
+</body></html>
