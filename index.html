@@ -3,12 +3,190 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#123c35">
+<meta name="theme-color" content="#101116">
 <meta name="description" content="AK LODGE room booking, Guwahati">
 <title>AK LODGE | Room Booking</title>
 <style>
-:root{--green:#123c35;--mint:#eaf4ef;--gold:#d8b36a;--ink:#18231f;--muted:#64716b;--line:#dce5df;--white:#fff;--red:#9f2727}
-*{box-sizing:border-box}body{margin:0;background:#f5f7f5;color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}header{background:var(--green);color:#fff;padding:22px 16px}header .wrap,main,.foot{max-width:980px;margin:auto}h1{margin:0;font-size:28px;letter-spacing:.5px}header p{margin:5px 0 0;color:#e0ebe5}.contact{margin-top:12px;font-size:14px}main{padding:16px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px;box-shadow:0 3px 12px #173a2b0a}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.room{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.room img{width:100%;height:165px;object-fit:cover;background:#e9eeea}.room .inside{padding:13px}.price{font-size:20px;font-weight:750;color:var(--green)}label{display:block;font-weight:650;font-size:14px;margin:12px 0 5px}input,select,textarea{width:100%;border:1px solid #bac8bf;border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--ink)}button,.btn{border:0;border-radius:10px;padding:12px 15px;background:var(--green);color:#fff;font:700 15px system-ui;cursor:pointer}button.secondary{background:#e9f0ec;color:var(--green)}button.danger{background:#9f2727}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.muted{color:var(--muted);font-size:14px}.hidden{display:none!important}.notice{padding:12px;border-radius:10px;background:var(--mint);margin:10px 0;white-space:pre-wrap}.error{background:#fff0f0;color:var(--red)}.pill{display:inline-block;background:var(--mint);color:var(--green);border-radius:30px;padding:4px 9px;font-size:12px;font-weight:700}.topnav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.topnav button{background:#fff;color:var(--green)}.topnav button.active{background:var(--gold);color:#1d251e}.room h3{margin:0 0 5px}.foot{text-align:center;padding:10px 16px 30px;color:var(--muted);font-size:13px}.check{display:flex;gap:9px;align-items:flex-start;margin:12px 0}.check input{width:auto;margin-top:4px}.booking{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}.booking h4{margin:0 0 5px}.admin-only{border-left:4px solid var(--gold)}small{color:var(--muted)}@media(min-width:650px){main{padding:24px}}
+:root {
+  --green: #d4af62;
+  --mint: #24252b;
+  --gold: #e5bd68;
+  --ink: #f4f1e8;
+  --muted: #b0b1bb;
+  --line: #41414a;
+  --white: #191a20;
+  --red: #ff7777;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: #101116;
+  color: var(--ink);
+  font: 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+header {
+  background: linear-gradient(135deg, #090a0e, #222027);
+  color: #fff;
+  padding: 22px 16px;
+  border-bottom: 1px solid var(--gold);
+}
+header .wrap, main, .foot {
+  max-width: 1100px;
+  margin: auto;
+}
+h1 { margin: 0; font-size: 28px; letter-spacing: 1.5px; color: var(--gold); }
+header p { margin: 5px 0 0; color: #d0cec8; }
+.contact { margin-top: 12px; font-size: 14px; color: #ddd8cd; }
+main { padding: 18px 14px; }
+.card {
+  background: #1a1b22;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0 0 14px;
+  box-shadow: 0 6px 22px #00000025;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 13px;
+}
+.room {
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  overflow: hidden;
+  background: #1a1b22;
+}
+.room img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  background: #25262e;
+}
+.room .inside { padding: 15px; }
+.room h3 { margin: 0 0 8px; color: #f1d18b; }
+.price { font-size: 22px; font-weight: 800; color: var(--gold); }
+label {
+  display: block;
+  font-weight: 650;
+  font-size: 14px;
+  margin: 12px 0 6px;
+  color: #e4d9bf;
+}
+input, select, textarea {
+  width: 100%;
+  border: 1px solid #484954;
+  border-radius: 10px;
+  padding: 12px;
+  font: inherit;
+  background: #111218;
+  color: #f5f2eb;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid #b9954f;
+  border-color: var(--gold);
+}
+button, .btn {
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  padding: 12px 15px;
+  background: #d4af62;
+  color: #17140d;
+  font: 700 15px system-ui, sans-serif;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.secondary {
+  background: #292a32;
+  color: #e7c779;
+  border-color: #55545a;
+}
+button.danger {
+  background: #642b30;
+  color: #fff;
+  border-color: #9c4b51;
+}
+.row {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.row > * { flex: 1; min-width: 0; }
+.muted, small { color: var(--muted); font-size: 14px; }
+.hidden { display: none !important; }
+.notice {
+  padding: 13px;
+  border-radius: 11px;
+  background: #29251b;
+  border: 1px solid #77613a;
+  color: #f2d89d;
+  margin: 10px 0;
+  white-space: pre-wrap;
+}
+.notice.error, .error {
+  background: #321d22;
+  border-color: #85434a;
+  color: #ffb9b9;
+}
+.pill {
+  display: inline-block;
+  background: #302b20;
+  color: #f1d18b;
+  border: 1px solid #655338;
+  border-radius: 30px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 750;
+}
+.topnav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 17px;
+}
+.topnav button {
+  background: #22232a;
+  color: #e8c779;
+  border-color: #55505a;
+}
+.topnav button.active {
+  background: var(--gold);
+  color: #17140d;
+  border-color: var(--gold);
+}
+.foot {
+  text-align: center;
+  padding: 16px 14px 30px;
+  color: #a6a5ad;
+  font-size: 13px;
+}
+.check {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 12px 0;
+}
+.check input { width: auto; margin-top: 4px; }
+.booking {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px;
+  margin: 11px 0;
+  background: #202129;
+  overflow-wrap: anywhere;
+}
+.booking h4 { margin: 0 0 7px; color: #f1d18b; }
+.admin-only { border-left: 4px solid var(--gold); }
+a { color: var(--gold); }
+@media (max-width: 500px) {
+  h1 { font-size: 25px; }
+  main { padding: 12px 10px; }
+  .card { padding: 13px; }
+  .topnav button { padding: 10px 11px; font-size: 13px; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
