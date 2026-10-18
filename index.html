@@ -270,6 +270,43 @@ a { color: var(--gold); }
 <p class="muted">Images are publicly viewable as lodge marketing photos. Never upload IDs, personal documents or private customer images.</p>
 </div>
 <div class="card admin-only"><h3>All booking requests</h3><div id="allBookings">Loading…</div></div>
+<div class="card admin-only">
+  <h3>Cash Billing &amp; Expenses</h3>
+  <p class="muted">Cash received aur lodge expenses ka record.</p>
+
+  <h4>Monthly financial summary</h4>
+  <label for="reportMonth">Month</label>
+  <input id="reportMonth" type="month">
+  <button type="button" onclick="loadFinancialReport()">Generate report</button>
+  <div id="financialReport" class="notice">
+    Month select karke report generate karein.
+  </div>
+
+  <hr style="border-color:var(--line);margin:20px 0">
+
+  <h4>Add lodge expense</h4>
+  <form id="expenseForm">
+    <label for="expenseAmount">Amount (₹)</label>
+    <input id="expenseAmount" type="number" min="0.01" step="0.01" required>
+
+    <label for="expenseCategory">Category</label>
+    <select id="expenseCategory" required>
+      <option value="Electricity">Electricity</option>
+      <option value="Water">Water</option>
+      <option value="Salary">Salary</option>
+      <option value="Cleaning">Cleaning</option>
+      <option value="Maintenance">Maintenance</option>
+      <option value="Supplies">Supplies</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="expenseDescription">Details</label>
+    <input id="expenseDescription" placeholder="e.g. Room 101 repair">
+
+    <button type="submit" style="margin-top:12px">Save expense</button>
+  </form>
+</div>
+  
 <div class="card admin-only"><h3>Room inventory</h3><div id="allRooms">Loading…</div></div>
 </section>
 </main>
