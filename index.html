@@ -400,6 +400,72 @@ async function loadAdmin(){
 
 $("allBookings").innerHTML=(bookings||[]).map(b=>`<div class="booking"><h4>${safe(b.booking_code)} · Room ${safe(b.rooms?.room_number||"")}</h4><div>${safe(b.guest_name)} · ${safe(b.guest_phone)} · ${b.guests} guest(s)</div><div>${safe(b.check_in)} → ${safe(b.check_out)} · ${money(b.total_amount)}</div><p><span class="pill">${safe(b.status.replaceAll("_"," "))}</span></p><div class="row"><select id="status-${b.id}">${["pending","confirmed","rejected","cancelled","checked_in","checked_out","no_show"].map(s=>`<option value="${s}" ${s===b.status?"selected":""}>${s.replaceAll("_"," ")}</option>`).join("")}</select><button onclick="changeStatus('${b.id}')">Save status</button></div>${["confirmed","checked_in","checked_out"].includes(b.status)?`<button class="secondary" style="margin-top:10px" onclick="recordCashPayment('${b.id}',${Number(b.total_amount)})">Record cash payment</button>`:""}</div>`).join("")||"No booking requests yet.";
 }
+async function recordCashPayment(bookingId, total) {
+  if (!isStaff() || !currentSession) {
+    showMsg("Owner/manager login required.", true);
+    return;
+  }
+
+  const { data: existing, error: readError } = await sb
+    .from("lodge_payments")
+    .select("amount")
+    .eq("booking_id", bookingId);
+
+  if (readError) {
+    showMsg("Payment history load nahi hui: " + readError.message, true);
+    return;
+  }
+
+  const paid = (existing || []).reduce(
+    (sum, row) => sum + Number(row.amount), 0
+  );
+
+  const balance = Math.max(0, Number(total) - paid);
+
+  if (balance <= 0) {
+    showMsg("Is booking ka poora bill already record ho chuka hai.");
+    return;
+  }
+
+  const answer = prompt(
+    "Total bill: " + money(total) +
+    "\nAlready received: " + money(paid) +
+    "\nRemaining: " + money(balance) +
+    "\n\nAbhi kitna cash receive hua? (₹)",
+    String(balance)
+  );
+
+  if (answer === null) return;
+
+  const amount = Number(answer);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showMsg("Valid payment amount enter karein.", true);
+    return;
+  }
+
+  if (amount > balance) {
+    showMsg("Amount remaining balance se zyada nahi ho sakta.", true);
+    return;
+  }
+
+  const { error } = await sb.from("lodge_payments").insert({
+    booking_id: bookingId,
+    amount: amount,
+    payment_method: "cash",
+    received_by: currentSession.user.id,
+    notes: "Cash received at lodge"
+  });
+
+  if (error) {
+    showMsg("Payment save nahi hua: " + error.message, true);
+    return;
+  }
+
+  showMsg("Cash payment record ho gaya: " + money(amount));
+  await loadFinancialReport();
+  await loadAdmin();
+}
 async function editPrice(id,old){const value=prompt("New price per night (₹):",old);if(value===null)return;const price=Number(value);if(!Number.isFinite(price)||price<0){showMsg("Valid price enter karein.",true);return;}const {error}=await sb.from("rooms").update({price_per_night:price}).eq("id",id);if(error)showMsg("Price update nahi hua: "+error.message,true);else{showMsg("Price update ho gaya.");await loadAdmin();await loadRooms();}}
 async function toggleRoom(id,active){if(!confirm(active?"Room deactivate karein? New bookings band ho jayengi.":"Room activate karein?"))return;const {error}=await sb.from("rooms").update({is_active:!active}).eq("id",id);if(error)showMsg("Room status update nahi hua: "+error.message,true);else{showMsg("Room status update ho gaya.");await loadAdmin();await loadRooms();}}
 async function changeStatus(id){const status=$("status-"+id).value;const {error}=await sb.from("bookings").update({status}).eq("id",id);if(error){if(error.code==="23P01")showMsg("Status confirm nahi hua: room ki dates kisi active booking se overlap hain.",true);else showMsg("Status update nahi hua: "+error.message,true);}else showMsg("Booking status update ho gaya.");await loadAdmin();await loadRooms();}
