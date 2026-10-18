@@ -410,6 +410,107 @@ async function uploadPhoto(){
  if(dbErr){showMsg("Photo storage mein upload hua lekin room list save nahi hui: "+dbErr.message,true);return;}
  $("roomPhoto").value="";$("photoAlt").value="";showMsg("Photo upload ho gaya.");await loadRooms();
 }
+
+const monthInput = document.getElementById("reportMonth");
+
+if (monthInput) {
+  monthInput.value = dateToday().slice(0, 7);
+}
+
+document.getElementById("expenseForm")?.addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  if (!isStaff()) {
+    showMsg("Owner/manager permission required.", true);
+    return;
+  }
+
+  const amount = Number(document.getElementById("expenseAmount").value);
+  const category = document.getElementById("expenseCategory").value;
+  const description = document.getElementById("expenseDescription").value.trim();
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showMsg("Valid expense amount enter karein.", true);
+    return;
+  }
+
+  const { error } = await sb.from("lodge_expenses").insert({
+    amount,
+    category,
+    description,
+    created_by: currentSession.user.id
+  });
+
+  if (error) {
+    showMsg("Expense save nahi hua: " + error.message, true);
+    return;
+  }
+
+  this.reset();
+  showMsg("Expense record save ho gaya.");
+  await loadFinancialReport();
+});
+
+async function loadFinancialReport() {
+  if (!sb || !isStaff()) return;
+
+  const month = document.getElementById("reportMonth").value;
+
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    showMsg("Valid month select karein.", true);
+    return;
+  }
+
+  const start = month + "-01";
+  const nextDate = new Date(
+    Number(month.slice(0, 4)),
+    Number(month.slice(5, 7)),
+    1
+  );
+
+  const end =
+    nextDate.getFullYear() + "-" +
+    String(nextDate.getMonth() + 1).padStart(2, "0") + "-01";
+
+  const [payments, expenses] = await Promise.all([
+    sb.from("lodge_payments")
+      .select("amount,paid_at")
+      .gte("paid_at", start + "T00:00:00")
+      .lt("paid_at", end + "T00:00:00"),
+
+    sb.from("lodge_expenses")
+      .select("amount")
+      .gte("expense_date", start)
+      .lt("expense_date", end)
+  ]);
+
+  if (payments.error || expenses.error) {
+    showMsg(
+      "Report load nahi hui: " +
+      (payments.error?.message || expenses.error?.message),
+      true
+    );
+    return;
+  }
+
+  const received = (payments.data || []).reduce(
+    (sum, row) => sum + Number(row.amount), 0
+  );
+
+  const spent = (expenses.data || []).reduce(
+    (sum, row) => sum + Number(row.amount), 0
+  );
+
+  document.getElementById("financialReport").textContent =
+    "Month: " + month +
+    "\nCash received: " + money(received) +
+    "\nExpenses: " + money(spent) +
+    "\nBalance after recorded expenses: " + money(received - spent) +
+    "\n\nPayments recorded: " + (payments.data || []).length +
+    "\nExpense entries: " + (expenses.data || []).length +
+    "\n\nNote: This is recorded cash flow, not necessarily accounting profit.";
+}
+  
 init();
 </script>
 </body></html>
